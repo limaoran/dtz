@@ -93,7 +93,7 @@ public class ServerProcesser implements Runnable {
                 argsArray[0] = args;
             }
             for(int i=0;i<spt.length;i++){
-                // 方法1  目前bug：方法中存在基本类型int、long这种会有问题，先使用Integer,Long
+                // 方法1  TODO 目前bug：方法中存在基本类型int、long这种会有问题，先使用Integer,Long
                 argsClasses[i] = Class.forName(completeClassStr(spt[i]));
                 // 方法2
 //                argsClasses[i] = argsArray[i].getClass();
