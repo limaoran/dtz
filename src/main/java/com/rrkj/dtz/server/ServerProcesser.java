@@ -1,5 +1,7 @@
 package com.rrkj.dtz.server;
 
+import com.rrkj.util.RemoteClassLoaderContext;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -40,10 +42,22 @@ public class ServerProcesser implements Runnable {
     private void process(Socket client){
         try {
             ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
+
             Object obj = ois.readObject();
             System.out.println("读取到客户端数据："+obj);
+
+            // 如果传输的是全局jar文件
+            for(;obj instanceof JarInfo;){
+                JarInfo jarInfo = (JarInfo) obj;
+                RemoteClassLoaderContext.registerJar(jarInfo);
+                obj = ois.readObject();
+            }
             if(obj instanceof CommandInfo){
                 CommandInfo commandInfo = (CommandInfo) obj;
+                if(commandInfo.getJarInfo()!=null){
+                    // 注册临时jar
+                    RemoteClassLoaderContext.registerJar(commandInfo.getJarInfo());
+                }
                 Object result = executeMethod(commandInfo);
                 System.out.println("客户端任务执行结果："+result);
 //                if(result!=null) {
@@ -67,6 +81,13 @@ public class ServerProcesser implements Runnable {
             }
         }
     }
+
+    /**
+     * 默认的执行方法
+     * @param commandInfo
+     * @return
+     * @throws Exception
+     */
     public Object executeMethod(CommandInfo commandInfo)throws Exception{
         // 解析命令 com.rrkj.demo.Hello@hello()
         boolean staticMethod = false; // 对象方法
@@ -80,6 +101,7 @@ public class ServerProcesser implements Runnable {
         String cls = splited[0];
         String methodStr = splited[1];
         Class[]argsClasses = null;
+
         if(methodStr.contains("(")){
             String[]spt = methodStr.split("[(]");
             methodStr = spt[0];
@@ -109,28 +131,39 @@ public class ServerProcesser implements Runnable {
         if(!staticMethod){
             obj = clazz.newInstance();
         }
-//        Object result =  method.invoke(obj,args);
         Object result =  method.invoke(obj,argsArray);
         return result;
     }
-
+    private Class getClass4Str(String str) throws ClassNotFoundException {
+        Object obj = completeClassStr(str);
+        return obj instanceof Class?(Class)obj:Class.forName((String)obj);
+    }
     /**
      * 根据短名称的class，补全
      * @param cls
-     * @return
+     * @return 如果时基本类型则返回Class对象，否则返回类全名
      */
-    private Object completeClassStr(String cls){
+    public static Object completeClassStr(String cls){
         switch (cls){
             // 返回基本类型class
             case "byte":return byte.class;
+            case "byte[]":return byte[].class;
             case "int": return int.class;
+            case "int[]" : return int[].class;
             case "short":return short.class;
+            case "short[]":return short[].class;
             case "long":return long.class;
+            case "long[]":return long[].class;
             case "float":return float.class;
+            case "float[]":return float[].class;
             case "double":return double.class;
+            case "double[]":return double[].class;
             case "boolean" : return boolean.class;
-            case "char":return char.class;
+            case "boolean[]" : return boolean[].class;
+            case "char":
             case "character":return char.class;
+            case "char[]":
+            case "character[]":return char[].class;
         }
         switch (cls.toLowerCase()){
             case "string":return "java.lang.String";
@@ -151,8 +184,5 @@ public class ServerProcesser implements Runnable {
         }
         return cls;
     }
-    private Class getClass4Str(String str) throws ClassNotFoundException {
-        Object obj = completeClassStr(str);
-        return obj instanceof Class?(Class)obj:Class.forName((String)obj);
-    }
+
 }

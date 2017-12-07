@@ -1,9 +1,13 @@
 package com.rrkj.dtz.client;
 
 import com.rrkj.dtz.server.CommandInfo;
+import com.rrkj.dtz.server.EntryInfo;
+import com.rrkj.dtz.server.JarInfo;
 import com.rrkj.dtz.server.ServerInfo;
+import com.rrkj.util.RemoteClassLoaderContext;
 import org.apache.zookeeper.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -21,7 +25,8 @@ public class Client {
     private Thread clientThread;
     protected volatile boolean running = true;
 
-    private LinkedBlockingQueue<CommandInfo> queue = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<EntryInfo> queue = new LinkedBlockingQueue<>();
+    private List<JarInfo> jars = new ArrayList<>();
 
     public Client(String zkHost, int zkPort) {
         this(zkHost + ":" + zkPort);
@@ -56,11 +61,29 @@ public class Client {
     }
 
     /**
-     * 添加命令
-     * @param commandInfo
+     * 添加全局的jar
+     * @param jarInfo
      */
-    public void addCommand(CommandInfo commandInfo){
-        queue.add(commandInfo);
+    public void addGlobalJars(JarInfo jarInfo){
+        synchronized (jars) {
+            if(jars.contains(jarInfo)){
+                return;
+            }
+            jars.add(jarInfo);
+        }
+        try {
+            // 本地也加载一份
+            RemoteClassLoaderContext.registerJar(jarInfo);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    /**
+     * 添加 命令/jar 对象
+     * @param entryInfo
+     */
+    public void addCommandInfo(EntryInfo entryInfo){
+        queue.add(entryInfo);
     }
     public void start() {
         clientThread = new Thread(commandListener);
@@ -80,27 +103,31 @@ public class Client {
                             System.exit(-1);
                         }
                         listNode.forEach(node->{    // node格式： 127.0.0.1:8080
-                            CommandInfo ci = null;
+                            EntryInfo ei = null;
                             try{
-                                ci =  queue.take();
-                                final CommandInfo commandInfo = ci;
+                                ei =  queue.take();
+                                final EntryInfo entryInfo = ei;
                                 byte[] bs =  zk.getData(ROOT_PATH+"/"+node,true, null);
                                 System.out.println(new String(bs));
                                 ServerInfo info = new ServerInfo(bs);
                                 // 根据server信息，连接到server
-                                ClientProcesser clientProcesser = new ClientProcesser(info,ci);
+                                ClientProcesser clientProcesser = new ClientProcesser(info);
+                                // 发送全局jar
+                                if(jars.size()>0){
+                                    clientProcesser.sendJars(jars);
+                                }
                                 // 执行命令
                                 // 这里先不采用多线程了，直接执行
                                 clientProcesser.setResultCallback(result -> {
-                                    System.out.println("任务："+commandInfo+"执行结果："+result);
+                                    System.out.println("任务："+entryInfo+"执行结果："+result);
                                 });
-                                clientProcesser.run();
+                                clientProcesser.sendCommand(ei);
                             }catch(Exception e){
                                 e.printStackTrace();
                                 // 如果出现异常，但是ci不为null，表示可能服务端有问题
                                 // 把数据放回队列
-                                if(ci!=null){
-                                    queue.add(ci);
+                                if(ei!=null){
+                                    queue.add(ei);
                                 }
                             }
                         });

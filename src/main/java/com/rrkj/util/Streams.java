@@ -70,6 +70,17 @@ public class Streams {
         }
     }
 
+    public static void write(byte[] bs, OutputStream os) throws IOException{
+        os.write(bs);
+    }
+    public static void writeAndClose(byte[]bs,String file)throws IOException{
+        try(OutputStream os = new FileOutputStream(file)){
+            os.write(bs);
+        }catch (Exception ex){
+            throw ex;
+        }
+    }
+
     static interface CallbackLine{
         void line(String line);
     }

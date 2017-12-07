@@ -36,4 +36,11 @@ public class Hello {
     public List<String> createList(String a,String b,String c){
         return Arrays.asList(a,b,c);
     }
+
+    public Class getJDBCClass()throws Exception{
+        return Class.forName("com.mysql.jdbc.Driver");
+    }
+    public Class getOracleJDBC()throws Exception{
+        return Class.forName("oracle.jdbc.driver.OracleDriver");
+    }
 }

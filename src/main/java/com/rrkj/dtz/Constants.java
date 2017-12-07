@@ -8,10 +8,14 @@ public class Constants {
     public final static boolean WARNING ;
     public final static boolean FINE ;
 
+    public final static String JAR_DUMP_DIR;
+
     static {
         // 初始化常量
-        DEBUG = true;
+        DEBUG = false;
         WARNING = true;
         FINE = true;
+
+        JAR_DUMP_DIR = "z:/udump";
     }
 }

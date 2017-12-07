@@ -1,5 +1,7 @@
 package com.rrkj.dtz.server;
 
+import com.rrkj.util.RemoteClassLoaderContext;
+
 import java.io.Serializable;
 
 /**
@@ -13,9 +15,13 @@ import java.io.Serializable;
  *  比如：public int hello(String name,List<String>list )
  *      封装后为：   com.rrkj.demo.Hello@hello(String,List),new Object[]{name,list}
  */
-public class CommandInfo implements Serializable{
+public class CommandInfo implements Serializable,EntryInfo{
     private String command;
     private Object args;
+    /**
+     * 本次命令使用的jar文件
+     */
+    private JarInfo jarInfo;
 
     public CommandInfo() {
     }
@@ -23,6 +29,23 @@ public class CommandInfo implements Serializable{
     public CommandInfo(String command, Object args) {
         this.command = command;
         this.args = args;
+    }
+
+    public CommandInfo(String command, Object args, JarInfo jarInfo) {
+        this.command = command;
+        this.args = args;
+
+        this.jarInfo = jarInfo;
+        // 本地注册一下jar
+        try {
+            RemoteClassLoaderContext.registerJar(jarInfo);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public JarInfo getJarInfo() {
+        return jarInfo;
     }
 
     public String getCommand() {
