@@ -93,8 +93,8 @@ public class ServerProcesser implements Runnable {
                 argsArray[0] = args;
             }
             for(int i=0;i<spt.length;i++){
-                // 方法1  TODO 目前bug：方法中存在基本类型int、long这种会有问题，先使用Integer,Long
-                argsClasses[i] = Class.forName(completeClassStr(spt[i]));
+                // 方法1
+                argsClasses[i] = getClass4Str(spt[i]);
                 // 方法2
 //                argsClasses[i] = argsArray[i].getClass();
             }
@@ -119,7 +119,19 @@ public class ServerProcesser implements Runnable {
      * @param cls
      * @return
      */
-    private String completeClassStr(String cls){
+    private Object completeClassStr(String cls){
+        switch (cls){
+            // 返回基本类型class
+            case "byte":return byte.class;
+            case "int": return int.class;
+            case "short":return short.class;
+            case "long":return long.class;
+            case "float":return float.class;
+            case "double":return double.class;
+            case "boolean" : return boolean.class;
+            case "char":return char.class;
+            case "character":return char.class;
+        }
         switch (cls.toLowerCase()){
             case "string":return "java.lang.String";
             case "int":
@@ -130,10 +142,17 @@ public class ServerProcesser implements Runnable {
             case "double":return "java.lang.Double";
             case "boolean" : return "java.lang.Boolean";
             case "char":
-            case "charset":return "java.lang.Character";
+            case "character":return "java.lang.Character";
             case "byte":return "java.lang.Byte";
             case "list":return "java.util.List";
+            case "map":return "java.util.Map";
+            case "hashmap":return "java.util.HashMap";
+
         }
         return cls;
+    }
+    private Class getClass4Str(String str) throws ClassNotFoundException {
+        Object obj = completeClassStr(str);
+        return obj instanceof Class?(Class)obj:Class.forName((String)obj);
     }
 }

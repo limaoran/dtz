@@ -22,10 +22,13 @@ public class ClientApp {
         CommandInfo ci6 = new CommandInfo("com.rrkj.dtz.demo.Hello@@sum(List)", Arrays.asList(1,2,3,4,5));
         CommandInfo ci7 = new CommandInfo("com.rrkj.dtz.demo.Hello@createList(String,String,String)",new Object[]{"a","b","c"});
 
+        CommandInfo ci8 = new CommandInfo("com.rrkj.dtz.demo.Hello@sum3(int,int)",new Object[]{4,5});
+
         client.addCommand(ci4);
         client.addCommand(ci5);
         client.addCommand(ci6);
         client.addCommand(ci7);
+        client.addCommand(ci8);
 
         System.in.read();
         client.close();

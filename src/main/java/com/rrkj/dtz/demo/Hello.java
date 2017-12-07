@@ -23,6 +23,9 @@ public class Hello {
     public Integer sum2(Integer a,Integer b){
         return a*a+b*b;
     }
+    public int sum3(int a,int b){
+        return a*a+b*b+a*b;
+    }
     public static Integer sum(List<Integer> list){
         int sum=0;
         for (Integer i : list) {

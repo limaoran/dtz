@@ -22,12 +22,16 @@ public class ServerProcessTest {
         CommandInfo ci6 = new CommandInfo("com.rrkj.dtz.demo.Hello@@sum(List)", Arrays.asList(1,2,3,4,5));
         CommandInfo ci7 = new CommandInfo("com.rrkj.dtz.demo.Hello@createList(String,String,String)",new Object[]{"a","b","c"});
 
-         System.out.println("Result1:"+sp.executeMethod(ci1));;
+        CommandInfo ci8 = new CommandInfo("com.rrkj.dtz.demo.Hello@sum3(int,int)",new Object[]{4,5});
+
+
+        System.out.println("Result1:"+sp.executeMethod(ci1));;
          System.out.println("Result2:"+sp.executeMethod(ci2));
          System.out.println("Result3:"+sp.executeMethod(ci3));
          System.out.println("Result4:"+sp.executeMethod(ci4));
          System.out.println("Result5:"+sp.executeMethod(ci5));
          System.out.println("Result6:"+sp.executeMethod(ci6));
          System.out.println("Result7:"+sp.executeMethod(ci7));
+        System.out.println("Result8:"+sp.executeMethod(ci8));;
     }
 }
