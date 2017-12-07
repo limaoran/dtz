@@ -73,7 +73,11 @@ public class Streams {
     public static void write(byte[] bs, OutputStream os) throws IOException{
         os.write(bs);
     }
-    public static void writeAndClose(byte[]bs,String file)throws IOException{
+    public static void writeAndClose(byte[]bs,String filePath)throws IOException{
+        File file = new File(filePath);
+        if(!file.getParentFile().exists()){
+            file.mkdirs();
+        }
         try(OutputStream os = new FileOutputStream(file)){
             os.write(bs);
         }catch (Exception ex){

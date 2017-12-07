@@ -1,5 +1,7 @@
 package com.rrkj.dtz;
 
+import java.util.Properties;
+
 /**
  * Created by Limaoran on 2017/12/6.
  */
@@ -11,11 +13,17 @@ public class Constants {
     public final static String JAR_DUMP_DIR;
 
     static {
+        Properties props = new Properties();
+        try{
+            props.load(Constants.class.getResourceAsStream("/conf.properties"));
+        }catch(Exception e){
+            e.printStackTrace();
+        }
         // 初始化常量
-        DEBUG = false;
-        WARNING = true;
-        FINE = true;
+        DEBUG = "true".equals( props.getProperty("debug"));
+        WARNING = "true".equals( props.getProperty("warning"));
+        FINE = "true".equals( props.getProperty("fine"));
 
-        JAR_DUMP_DIR = "z:/udump";
+        JAR_DUMP_DIR = props.getProperty("jar_dump_dir");
     }
 }
